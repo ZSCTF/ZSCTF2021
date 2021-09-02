@@ -1,0 +1,9 @@
+version: "2.2"
+
+services:
+
+  high_stakes:
+    build: GAMBLE/
+    restart: always
+    ports:
+      - "9001:9001"

@@ -3,3 +3,5 @@
 + FUNNY 1
 + MISC 2
 + WEB 4
++ PWN 1
++ CRYPTO 1

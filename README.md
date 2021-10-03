@@ -3,5 +3,6 @@
 + FUNNY 1
 + MISC 2
 + WEB 4
-+ PWN 1
++ PWN ２
 + CRYPTO 1
++ REVERSE 1

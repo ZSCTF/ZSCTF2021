@@ -2,7 +2,7 @@
 ### 当前统计
 + FUNNY 1
 + MISC 2
-+ WEB 4
++ WEB 5
 + PWN ２
 + CRYPTO 1
 + REVERSE 1

@@ -1,6 +1,5 @@
 //考点
 // 1.格式化字符串基础(利用栈内变量作为参数)
-// 2.堆利用基础　--(off by one)
 
 // 塑料英语　
 
@@ -27,6 +26,7 @@ struct punch
 };
 
 void * student_list[0x10];
+long int auth;
 
 void init();
 void menu();
@@ -42,54 +42,59 @@ int read_ptr(char* ptr,int limit);
 
 void manage(){
 
-    char tmp[0x20];
+    if(auth == 0 ){
 
-    memset(tmp,0,0x20);
+        char tmp[0x10];
 
-    puts("inputs your token!");
-    
-    read_ptr(tmp,4);
-    
+        memset(tmp,0,0x10);
 
-    char token[0x8];
-    memset(token,0,0x8);
-    int fd=open("/dev/urandom",0);
-
-    if(read(fd,token,0x4)==-1){
-        close(fd);
-        exit(0);
-    }
-    close(fd);
-    
-    printf(tmp);
-
-    if(strcmp(tmp,token) == 0 ){
-        puts("welcome manager");
-        while(1){
-            manager_menu();
-            int choice;
-            scanf("%d",&choice);
-            switch (choice)
-            {
-            case 1:
-                statistic();
-                break;
-            case 2:
-                clear();
-                break;
-            case 3:
-                return;
-            default:
-                puts("invaild choose!");
-                break;
-            }
-        }
+        puts("inputs your token!");
+        
+        read_ptr(tmp,0x10);
         
 
-    }else{
-        puts("token error!");
-        return;
+        char token[0x10];
+        memset(token,0,0x10);
+        int fd=open("/dev/urandom",0);
+
+        if(read(fd,token,0x4)==-1){
+            close(fd);  
+            exit(0);
+        }
+        close(fd);
+        
+        printf(tmp);
+
+        if(strncmp(tmp,token,4) != 0 ){
+            puts("tocken error!");
+            return;
+        }else{
+            auth = -1;
+        }
+
+    }   
+    puts("welcome manager");
+    while(1){
+        manager_menu();
+        long int choice;
+        scanf("%ld",&choice);
+        switch (choice)
+        {
+        case 1:
+            statistic();
+            break;
+        case 2:
+            clear();
+            break;
+        case 3:
+            return;
+        default:
+            setbuf(stdin,NULL);
+            puts("invaild choose!");
+            break;
+        }
     }
+
 
 }
 
@@ -100,20 +105,26 @@ int read_ptr(char* ptr,int limit){
     int i;
     for ( i = 0; ; i++)
     {
+        
+        if(i==limit) return 0;
+
         if(read(0,tmp+i,1)!=1){
             return -1;
         }
         if(*(tmp+i) == '\n'){
+            *(tmp+i) = '\x00';
             return 0;
         }
         
-        if(i==limit) return 0;
     }
 }
+
+
 
 void init(){
     setbuf(stdin, NULL);
     setbuf(stdout,NULL);
+    auth = 0;
 }
 
 
@@ -133,15 +144,15 @@ void manager_menu(){
 
 void registers(){
 
-    int idx;
+    long int idx;
 
-    for ( idx= 0; idx<0x10; idx++)
+    for ( idx= 0; idx<=0x10; idx++)
     {
         if(student_list[idx]==NULL){
             break;
         }        
     }
-    if(idx >= 0x10){
+    if(idx > 0x10){
         puts("student is full!");
         return ;
     }
@@ -151,47 +162,43 @@ void registers(){
 
     puts("input your name");
 
-    if(read(0,stu->stu_name,0x8)==-1){
-        exit(-1);
-    }
+    read_ptr(stu->stu_name,8);
 
     stu->stu_punch=NULL;
 
     student_list[idx] = stu;
 
     puts("register success!");
+    printf("your student no is %ld",idx);
 }
 
 void punch(){
-   char tmp[0x8];
-   int idx = 0;
-   puts("please input your student no.");
-   
-   read(0,tmp,0x8);
+    long int idx = 0;
+    long int size = 0;
+    puts("please input your student no.");
 
-   idx = atoi(tmp);
+    scanf("%ld",&idx);
 
-   if(idx<0&&idx>=10){
-       exit(-1);
-   }
+    if(idx<0 || idx>10){
+        exit(-1);
+    }
 
     if(student_list[idx] == NULL){
         puts("student does not exist.");
         return;
     }
-    
+    struct student *s =  student_list[idx];
     struct punch* p = malloc(sizeof(punch));
 
-    p->student = student_list[idx];
+    p->student = s;
 
 
     puts("please input content size!");
 
-    read(0,tmp,0x8);
+    scanf("%ld",&size);
 
-    int size = atoi(tmp);
     
-    if(size<0 && size>=0x70){
+    if(size<0 || size>=0x70){
         exit(-1);
     }
 
@@ -202,7 +209,6 @@ void punch(){
 
     read_ptr(content,size);
 
-    struct student *s =  student_list[idx];
 
     if(s->stu_punch == NULL){
     
@@ -220,13 +226,11 @@ void punch(){
 void statistic(){
 
     puts("please inputs review student no");
-    char tmp[0x8];
-    int idx = 0;   
-    read(0,tmp,0x8);
+    long int idx = 0;   
 
-    idx = atoi(tmp);
+    scanf("%ld",&idx);
 
-    if(idx<0&&idx>=10){
+    if(idx<0 || idx>10){
        exit(-1);
     }
 
@@ -253,14 +257,10 @@ void statistic(){
 
 void clear(){
     puts("please inputs delete student no");
-    char tmp[0x8];
-    int idx = 0;
-   
-    read(0,tmp,0x8);
+    long int idx = 0;
+    scanf("%ld",&idx);
 
-    idx = atoi(tmp);
-
-    if(idx<0&&idx>=10){
+    if(idx<0 || idx>10){
        exit(-1);
     }
 
@@ -271,8 +271,8 @@ void clear(){
     struct student *s =  student_list[idx];
 
     struct punch *p =  s->stu_punch;
-    struct punch *p_tmp = p;
 
+    struct punch *p_tmp = p;
 
     while(p!=NULL){
         p_tmp = p;
@@ -283,20 +283,19 @@ void clear(){
     free(s);
 
     student_list[idx] == NULL;
-
 }
 
 int main(int argc, char const *argv[])
 {
 
     init();
-    int choice;
+    long int choice;
 
     while (1)
     {
 
         menu();
-        scanf("%d",&choice);
+        scanf("%ld",&choice);
         /* code */
         switch (choice)
         {
@@ -312,14 +311,11 @@ int main(int argc, char const *argv[])
         case 4:
             exit(0);
         default:
+            setbuf(stdin,NULL);
             puts("invaild choose");
             break;
         }
     }
     
-
-    
-
-
     return 0;
 }

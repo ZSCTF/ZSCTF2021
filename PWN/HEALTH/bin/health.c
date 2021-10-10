@@ -1,9 +1,3 @@
-//考点
-// 1.格式化字符串基础(利用栈内变量作为参数)
-
-// 塑料英语　
-
-// 
 
 #include<stdio.h>
 #include<stdlib.h>
@@ -12,11 +6,11 @@
 
 struct student
 {
-    int stu_no;
-    char stu_name[0x8];
+    char stu_name[0x10];
     void* stu_punch; 
     /* data */
 };
+
 struct punch
 {
     void * student;
@@ -25,8 +19,9 @@ struct punch
     char* content;
 };
 
-void * student_list[0x10];
-long int auth;
+static void * student_list[0x10];
+static long int auth;
+
 
 void init();
 void menu();
@@ -37,7 +32,7 @@ void clear();
 void manage();
 void manager_menu();
 int read_ptr(char* ptr,int limit);
-
+void modify();
 
 
 void manage(){
@@ -56,15 +51,15 @@ void manage(){
         char token[0x10];
         memset(token,0,0x10);
         int fd=open("/dev/urandom",0);
-
+        if (fd <= 0) {  
+            exit(-1);
+        }
         if(read(fd,token,0x4)==-1){
             close(fd);  
-            exit(0);
+            exit(-1);
         }
         close(fd);
         
-        printf(tmp);
-
         if(strncmp(tmp,token,4) != 0 ){
             puts("tocken error!");
             return;
@@ -87,6 +82,9 @@ void manage(){
             clear();
             break;
         case 3:
+            modify();
+            break;
+        case 4:
             return;
         default:
             setbuf(stdin,NULL);
@@ -120,7 +118,6 @@ int read_ptr(char* ptr,int limit){
 }
 
 
-
 void init(){
     setbuf(stdin, NULL);
     setbuf(stdout,NULL);
@@ -133,12 +130,15 @@ void menu(){
     puts("2.punch in");
     puts("3.manage");
     puts("4.exit");
+    puts("plz input your choice> ");
 }
 
 void manager_menu(){
     puts("1.statistic");
     puts("2.clear record");
-    puts("3.back");
+    puts("3.modify");
+    puts("4.back");
+    puts("plz input your choice> ");
 }
 
 
@@ -157,19 +157,20 @@ void registers(){
         return ;
     }
     struct student * stu = malloc(sizeof(struct  student));
-    
-    stu->stu_no = idx;
+    if(stu == NULL)exit(-1);
 
     puts("input your name");
 
-    read_ptr(stu->stu_name,8);
+    read_ptr(stu->stu_name,0x10);
 
     stu->stu_punch=NULL;
 
     student_list[idx] = stu;
 
+    printf("your student no is %ld \n",idx);
+
     puts("register success!");
-    printf("your student no is %ld",idx);
+
 }
 
 void punch(){
@@ -180,6 +181,7 @@ void punch(){
     scanf("%ld",&idx);
 
     if(idx<0 || idx>10){
+        puts("you can't hack me!");
         exit(-1);
     }
 
@@ -188,7 +190,9 @@ void punch(){
         return;
     }
     struct student *s =  student_list[idx];
-    struct punch* p = malloc(sizeof(punch));
+    struct punch* p = malloc(sizeof(struct punch));
+
+    if(p == NULL)exit(-1);
 
     p->student = s;
 
@@ -203,12 +207,16 @@ void punch(){
     }
 
     p->length = size;
+
     char * content=malloc(size);
+    
+    if(content == NULL)exit(-1);
 
     puts("please input content");
 
     read_ptr(content,size);
 
+    p->content = content;
 
     if(s->stu_punch == NULL){
     
@@ -220,8 +228,8 @@ void punch(){
 
         s->stu_punch = p;
     }
+    puts("punch success");
 }
-
 
 void statistic(){
 
@@ -231,6 +239,8 @@ void statistic(){
     scanf("%ld",&idx);
 
     if(idx<0 || idx>10){
+       puts("you can't hack me!");
+
        exit(-1);
     }
 
@@ -261,6 +271,8 @@ void clear(){
     scanf("%ld",&idx);
 
     if(idx<0 || idx>10){
+       puts("you can't hack me!");
+
        exit(-1);
     }
 
@@ -277,12 +289,65 @@ void clear(){
     while(p!=NULL){
         p_tmp = p;
         p = p->next;
+        free(p_tmp->content);
         free(p_tmp);
     }
-    s->stu_punch = NULL;
     free(s);
+    puts("clear success!");
+}
 
-    student_list[idx] == NULL;
+
+void modify(){
+    puts("please inputs modify student no");
+    long int idx = 0;   
+
+    scanf("%ld",&idx);
+
+    if(idx<0 || idx>10){
+       puts("you can't hack me!");
+
+       exit(-1);
+    }
+    if(student_list[idx] == NULL){
+        puts("student does not exist.");
+        return;
+    }
+    struct student *s =  student_list[idx];
+    
+    struct punch *p = s->stu_punch;
+
+    struct punch *p_tmp = p; 
+
+    int i = 0;
+    char choice;
+    long int size;
+
+    while(p_tmp != NULL){
+        printf("%d .information: %s\n",i,p_tmp->content);
+
+        do{
+            puts("Is this your want to modify infomation?(y/n)");
+
+            scanf("%c",&choice);
+            if(choice == 'y'){
+                puts("please input content size!");
+                scanf("%ld",&size);
+                if(size<0 || size>=0x70){
+                    exit(-1);
+                }
+                puts("please input content");
+                p_tmp->content = realloc(p_tmp->content,size);
+                if(p_tmp->content == NULL){
+                    exit(-1);
+                }
+                read_ptr(p_tmp->content,size);
+                puts("modify success!");
+                return;
+            }
+        }while(choice != 'n');
+        p_tmp = p_tmp->next;
+        i++;
+    }
 }
 
 int main(int argc, char const *argv[])

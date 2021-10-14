@@ -49,7 +49,7 @@ if __name__ == "__main__":
     #skip tocken check
     #
     for i in range(1):
-        register("xiejing\n")
+        register("xxxxxx\n")
     
 
     punch(0,0x68,'aaa\n')

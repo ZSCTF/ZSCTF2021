@@ -1,0 +1,14 @@
+version: "2.2"
+services:
+  babyao:
+    build: BABYAO/
+    restart: unless-stopped
+    ports:
+      - "9002:9999"
+  health:
+    build: HEALTH/
+    restart: unless-stopped
+    ports:
+      - "9003:9999"
+
+      

@@ -3,6 +3,9 @@ FROM debian:buster-slim
 # Setup user
 RUN useradd www
 
+COPY sources.list /
+
+RUN mv /sources.list /etc/apt/sources.list
 # Install system packeges
 RUN apt-get update && apt-get install -y supervisor nginx lsb-release wget
 

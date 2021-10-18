@@ -1,0 +1,29 @@
+version: "2.2"
+services:
+  ez_flask:
+    build: ez_flask/
+    restart: unless-stopped
+    ports:
+      - "6005:8080"
+  ez_trick:
+    build: ez_trick/
+    restart: unless-stopped
+    ports:
+      - "6001:80"
+  helen_of_troy:
+    build: Helen_of_Troy/
+    restart: unless-stopped
+    ports:
+      - "6002:80"
+  life:
+    build: life/
+    restart: unless-stopped
+    ports:
+      - "6003:80"
+  one_word:
+    build: One_Word/
+    restart: unless-stopped
+    ports:
+      - "6004:80"
+
+      

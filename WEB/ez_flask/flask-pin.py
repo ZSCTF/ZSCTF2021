@@ -62,5 +62,5 @@ def find_flag():
 
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', debug=True, port=8090)
+    app.run(host='127.0.0.1', debug=False, port=8090)
 
